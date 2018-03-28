@@ -1,0 +1,78 @@
+
+version: '3.3'
+services:
+  nginx:
+    image: "jeremysandor/slackchamp_nginx:latest"
+    build: ./nginx/
+    ports:
+      - "80:80"
+    # volumes:
+    #   - /www/public
+    # volumes_from:
+    #   - web
+    links:
+      - ui:ui
+      - web:web
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.role == worker
+      restart_policy:
+        condition: any
+  
+  ui:
+    image: "jeremysandor/slackchamp_ui:latest"
+    build: ./ui/
+    ports:
+      - "3000:3000" 
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
+      restart_policy:
+        condition: any
+    configs:
+      - source: ui_config_js
+        target: /ui/config.js
+    environment:
+      API_URL: 'http://ec2-13-57-176-254.us-west-1.compute.amazonaws.com:3001'
+      NODE_ENV: production
+
+  web:
+    image: "jeremysandor/slackchamp_web:latest"
+    build: ./api/
+    ports:
+     - "3001:3001"
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
+      restart_policy:
+        condition: any
+    environment:
+      DATABASE_URL: postgres://deploy@postgres/slackchamp
+      NODE_ENV: production
+      AUTH0_CLIENT_ID: ariBhQW-sIIhj9oXVSgWDvRlWhoQTAQu
+      AUTH0_DOMAIN: slackchamp.auth0.com
+      AUTH0_CLIENT_SECRET: 7io8_1Lq0dXXnzo0-uxHZ3kI_sLkD6ujxm1GZmSwWt78r1QlK-JGGosUNq6Ifd2N
+      AUTH0_CALLBACK_URL: http://app.trustthehinkie.com/callback
+  
+  postgres:
+    image: "jeremysandor/slackchamp_db:latest"
+    build: ./db/
+    restart: always
+    environment:
+      POSTGRES_USER: deploy
+      POSTGRES_DB: slackchamp
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+configs:
+  ui_config_js:
+    file: ./configs/ui/prod/config.js 
+
+volumes:
+  db-data:

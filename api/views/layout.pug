@@ -1,0 +1,23 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css' integrity='sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb' crossorigin='anonymous')
+    link(rel='stylesheet', href='/stylesheets/album.css')
+    script(src="https://cdn.auth0.com/js/auth0/8.7/auth0.min.js")
+  body
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light
+      a( href="/").navbar-brand Bachelor(ette)Wire
+      if loggedIn
+        a( href="/user" ) Profile
+        a( href="/logout" ) Logout
+      else
+        a( href="/login" ) Login
+    main
+      block content
+      
+    //- nav.w3-bar.w3-border.w3-light-grey( role="navigation" )
+    //-   .w3-bar-item.w3-text-grey BachelorWire
+    //-   a( href="/").w3-bar-item.w3-button Home
+
+

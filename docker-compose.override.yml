@@ -1,0 +1,70 @@
+# DEV compose file 
+
+version: '3.3'
+services:
+  nginx:
+    image: "jeremysandor/slackchamp_nginx:latest"
+    build: ./nginx/
+    ports:
+      - "80:80"
+    # volumes:
+    #   - /www/public
+    # volumes_from:
+    #   - web
+    links:
+      - ui:ui
+      - web:web
+
+  ui:
+    image: "jeremysandor/slackchamp_ui:latest"
+    build: ./ui/
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ui:/ui
+    links:
+      - web:web
+    configs:
+      - source: ui_config_js
+        target: /ui/config.js
+    environment:
+      API_URL: 'http://localhost:3001'
+      NODE_ENV: development
+
+  web:
+    image: "jeremysandor/slackchamp_web:latest"
+    build: ./api/
+    ports:
+     - "3001:3001"
+    volumes:
+      - .:/usr/src/app
+      # - /usr/src/app/node_modules
+    # nodemon for dev - only watch the api directory with --watch
+    command: api/node_modules/.bin/nodemon --watch api ./api/bin/www
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://deploy@postgres/slackchamp
+      NODE_ENV: development
+      AUTH0_CLIENT_ID: ariBhQW-sIIhj9oXVSgWDvRlWhoQTAQu
+      AUTH0_DOMAIN: slackchamp.auth0.com
+      AUTH0_CLIENT_SECRET: 7io8_1Lq0dXXnzo0-uxHZ3kI_sLkD6ujxm1GZmSwWt78r1QlK-JGGosUNq6Ifd2N
+      # AUTH0_CALLBACK_URL: http://localhost:3001/callback
+      AUTH0_CALLBACK_URL: http://localhost/api/callback
+
+  postgres:
+    image: "jeremysandor/slackchamp_db:latest"
+    build: ./db/
+    environment:
+      POSTGRES_USER: deploy
+      POSTGRES_DB: slackchamp
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+configs:
+  ui_config_js:
+    file: ./configs/ui/dev/config.js      
+
+volumes:
+  db-data:
+
